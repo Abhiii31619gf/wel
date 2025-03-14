@@ -1,7 +1,7 @@
-import pytz
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto, ChatMember
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
+from pytz import utc  # Fixed Import for APScheduler Timezone
 
 # Bot Token
 BOT_TOKEN = '7949103650:AAGe5fAoTh4XueeZEdMhYS5EYEczVguEoac'
@@ -34,6 +34,7 @@ WELCOME_MSG = """
 ━━━━━━━━━━━━━━━
 """
 
+# Force Join Message
 FORCE_JOIN_MSG = """
 ⛓️ **𝑮𝑶𝑫𝑭𝑨𝑻𝑯𝑬𝑹 𝑹𝑼𝑳𝑬𝑺** 💀  
 🎯 𝑱𝒐𝒊𝒏 𝑶𝑼𝑹 𝑴𝑨𝑭𝑰𝑨 𝑪𝑯𝑨𝑵𝑵𝑬𝑳𝑺 𝑻𝑶 𝑮𝑬𝑻 𝑨𝑪𝑪𝑬𝑺𝑺 👑
@@ -41,7 +42,7 @@ FORCE_JOIN_MSG = """
 🚫 **Without Joining Channels You Can't Chat 🔥**  
 """
 
-# ✅ Fixed Function for Checking Membership
+# ✅ Check if User is in All Channels
 async def is_user_in_channels(context: CallbackContext, user_id):
     for channel_id in CHANNEL_IDS:
         try:
@@ -113,14 +114,26 @@ async def check_membership(update, context):
     else:
         await context.bot.restrict_chat_member(update.message.chat_id, user_id, can_send_messages=True)
 
+# ✅ Start Command for Admin
+async def start(update, context):
+    if update.message.from_user.id == ADMIN_ID:
+        await update.message.reply_text("👑 **Mafia Bot Successfully Started ✅**")
+    else:
+        await update.message.reply_text("🔒 **Access Denied!**")
+
 # ✅ Main Bot Function
 async def main():
     application = Application.builder().token(BOT_TOKEN).build()
-    application.job_queue.scheduler.configure(timezone=pytz.utc)
+    
+    # ✅ Fix for APScheduler Timezone
+    application.job_queue.scheduler.configure(timezone=utc)
 
+    # Add Handlers
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, check_membership))
+    application.add_handler(CommandHandler("start", start))
 
+    # Run the Bot
     await application.run_polling()
 
 if __name__ == '__main__':
