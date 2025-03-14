@@ -1,4 +1,5 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, InputMediaPhoto, ChatMember
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto, ChatMember
+from telegram.constants import ParseMode
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 # Bot Token
