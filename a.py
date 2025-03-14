@@ -37,7 +37,7 @@ WELCOME_MSG = """
 # ✅ Force Join Message
 FORCE_JOIN_MSG = """
 ⛓️ **𝑮𝑶𝑫𝑭𝑨𝑻𝑯𝑬𝑹 𝑹𝑼𝑳𝑬𝑺** 💀  
-🎯 𝑱𝒐𝒊𝒏 𝑶𝑼𝑹 𝑴𝑨𝑭𝑰𝑨 𝑪𝑯𝑨𝑵𝑵𝑬𝑳𝑺 𝑻𝑶 𝑮𝑬𝑻 𝑨𝑪𝑪𝑬𝑺𝑺 👑
+🎯 𝑱𝒐𝒊𝒏 𝑶𝑼𝑹 𝑴𝑨𝑭𝑰𝑨 𝑪𝑯𝑨𝑵𝑵𝑬𝒍𝑺 𝑻𝑶 𝑮𝑬𝑻 𝑨𝑪𝑪𝑬𝑺𝑺 👑
 🚫 **Without Joining Channels You Can't Chat 🔥**  
 """
 
@@ -105,10 +105,7 @@ async def start(update, context):
 # ✅ Main Bot Function
 async def main():
     scheduler = AsyncIOScheduler(timezone=pytz.utc)  # Fixed Timezone Bug ✅
-
-    application = Application.builder().token(BOT_TOKEN).post_init(
-        lambda app: app.job_queue.scheduler.configure(timezone=pytz.utc)
-    ).build()
+    application = Application.builder().token(BOT_TOKEN).build()
 
     # Add Handlers
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome))
