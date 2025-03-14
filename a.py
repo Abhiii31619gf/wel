@@ -1,6 +1,7 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ChatMember
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
-import pytz  # Fixed APScheduler Timezone
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import pytz
 
 # ✅ Bot Token
 BOT_TOKEN = '7949103650:AAGe5fAoTh4XueeZEdMhYS5EYEczVguEoac'
@@ -103,10 +104,11 @@ async def start(update, context):
 
 # ✅ Main Bot Function
 async def main():
-    application = Application.builder().token(BOT_TOKEN).build()
-    
-    # ✅ Fixed APScheduler Timezone Error
-    application.job_queue.scheduler.configure(timezone=pytz.utc)
+    scheduler = AsyncIOScheduler(timezone=pytz.utc)  # Fixed Timezone Bug ✅
+
+    application = Application.builder().token(BOT_TOKEN).post_init(
+        lambda app: app.job_queue.scheduler.configure(timezone=pytz.utc)
+    ).build()
 
     # Add Handlers
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome))
