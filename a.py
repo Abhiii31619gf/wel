@@ -1,6 +1,6 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto, ChatMember
 from telegram.constants import ParseMode
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, MessageHandler, filters
 
 # Bot Token
 BOT_TOKEN = '7949103650:AAGe5fAoTh4XueeZEdMhYS5EYEczVguEoac'
@@ -35,7 +35,7 @@ WELCOME_MSG = """
 
 FORCE_JOIN_MSG = """
 ⛓️ **𝑮𝑶𝑫𝑭𝑨𝑻𝑯𝑬𝑹 𝑹𝑼𝑳𝑬𝑺** 💀  
-🎯 𝑱𝒐𝒊𝒏 𝑶𝑼𝑹 𝑴𝑨𝑭𝑰𝑨 𝑪𝑯𝑨𝑵𝑵𝑬𝑳𝑺 𝑻𝑶 𝑮𝑬𝑻 𝑨𝑪𝑪𝑬𝑺𝑺 👑
+🎯 𝑱𝒐𝒊𝒏 𝑶𝑼𝑹 𝑴𝑨𝑭𝑰𝑨 𝑪𝑯𝑨𝑵𝑵𝑬𝒍𝑺 𝑻𝑶 𝑮𝑬𝑻 𝑨𝑪𝑪𝑬𝑺𝑺 👑
 
 🚫 **Without Joining Channels You Can't Chat 🔥**  
 """
@@ -120,8 +120,8 @@ def main():
     updater = Updater(BOT_TOKEN, use_context=True)
     dp = updater.dispatcher
 
-    dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, welcome))
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, check_membership))
+    dp.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome))
+    dp.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, check_membership))
 
     updater.start_polling()
     updater.idle()
