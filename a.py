@@ -1,8 +1,6 @@
-import asyncio
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ChatMember
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
-from pytz import utc  # Fixed APScheduler Timezone
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import pytz  # Fixed APScheduler Timezone
 
 # ✅ Bot Token
 BOT_TOKEN = '7949103650:AAGe5fAoTh4XueeZEdMhYS5EYEczVguEoac'
@@ -33,13 +31,12 @@ WELCOME_MSG = """
 🆔 **User ID:** {user_id}  
 ☠️ **Access: ✅ Granted**  
 ━━━━━━━━━━━━━━━
-© @MasterBhaiyaa
 """
 
 # ✅ Force Join Message
 FORCE_JOIN_MSG = """
 ⛓️ **𝑮𝑶𝑫𝑭𝑨𝑻𝑯𝑬𝑹 𝑹𝑼𝑳𝑬𝑺** 💀  
-🎯 𝑱𝒐𝒊𝒏 𝑶𝑼𝑹 𝑴𝑨𝑭𝑰𝑨 𝑪𝑯𝑨𝑵𝑵𝑬𝑳𝑺 𝑻𝑶 𝑮𝑬𝑻 𝑨𝑪𝑪𝑬𝑺𝑺 👑  
+🎯 𝑱𝒐𝒊𝒏 𝑶𝑼𝑹 𝑴𝑨𝑭𝑰𝑨 𝑪𝑯𝑨𝑵𝑵𝑬𝑳𝑺 𝑻𝑶 𝑮𝑬𝑻 𝑨𝑪𝑪𝑬𝑺𝑺 👑
 🚫 **Without Joining Channels You Can't Chat 🔥**  
 """
 
@@ -104,31 +101,21 @@ async def start(update, context):
     else:
         await update.message.reply_text("🔒 **Access Denied!**")
 
-# ✅ For Banned Users
-async def handle_left_chat_member(update, context):
-    left_member = update.message.left_chat_member
-    if left_member:
-        await update.message.delete()
-
 # ✅ Main Bot Function
 async def main():
-    application = (
-        Application.builder()
-        .token(BOT_TOKEN)
-        .build()
-    )
+    application = Application.builder().token(BOT_TOKEN).build()
     
     # ✅ Fixed APScheduler Timezone Error
-    application.job_queue.scheduler.configure(timezone=utc)
+    application.job_queue.scheduler.configure(timezone=pytz.utc)
 
-    # ✅ Handlers
+    # Add Handlers
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, check_membership))
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(MessageHandler(filters.StatusUpdate.LEFT_CHAT_MEMBER, handle_left_chat_member))
 
-    # ✅ Run the Bot
+    # Run the Bot
     await application.run_polling()
 
 if __name__ == '__main__':
+    import asyncio
     asyncio.run(main())
