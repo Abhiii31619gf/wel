@@ -1,6 +1,5 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, InputMediaPhoto
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, InputMediaPhoto, ChatMember
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from telegram.constants import ChatMemberStatus
 
 # Bot Token
 BOT_TOKEN = '7949103650:AAGe5fAoTh4XueeZEdMhYS5EYEczVguEoac'
@@ -45,7 +44,7 @@ def is_user_in_channels(bot, user_id):
     for channel_id in CHANNEL_IDS:
         try:
             chat_member = bot.get_chat_member(channel_id, user_id)
-            if chat_member.status in [ChatMemberStatus.LEFT, ChatMemberStatus.KICKED]:
+            if chat_member.status in [ChatMember.LEFT, ChatMember.KICKED]:
                 return False
         except:
             return False
