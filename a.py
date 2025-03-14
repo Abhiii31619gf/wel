@@ -1,6 +1,6 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto, ChatMember
 from telegram.constants import ParseMode
-from telegram.ext import Updater, CommandHandler, MessageHandler, filters
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 
 # Bot Token
 BOT_TOKEN = '7949103650:AAGe5fAoTh4XueeZEdMhYS5EYEczVguEoac'
@@ -35,16 +35,16 @@ WELCOME_MSG = """
 
 FORCE_JOIN_MSG = """
 ⛓️ **𝑮𝑶𝑫𝑭𝑨𝑻𝑯𝑬𝑹 𝑹𝑼𝑳𝑬𝑺** 💀  
-🎯 𝑱𝒐𝒊𝒏 𝑶𝑼𝑹 𝑴𝑨𝑭𝑰𝑨 𝑪𝑯𝑨𝑵𝑵𝑬𝒍𝑺 𝑻𝑶 𝑮𝑬𝑻 𝑨𝑪𝑪𝑬𝑺𝑺 👑
+🎯 𝑱𝒐𝒊𝒏 𝑶𝑼𝑹 𝑴𝑨𝑭𝑰𝑨 𝑪𝑯𝑨𝑵𝑵𝑬𝑳𝑺 𝑻𝑶 𝑮𝑬𝑻 𝑨𝑪𝑪𝑬𝑺𝑺 👑
 
 🚫 **Without Joining Channels You Can't Chat 🔥**  
 """
 
 # ✅ Fixed Function for Checking Membership
-def is_user_in_channels(bot, user_id):
+async def is_user_in_channels(context: CallbackContext, user_id):
     for channel_id in CHANNEL_IDS:
         try:
-            chat_member = bot.get_chat_member(channel_id, user_id)
+            chat_member = await context.bot.get_chat_member(channel_id, user_id)
             if chat_member.status in [ChatMember.LEFT, ChatMember.KICKED]:
                 return False
         except:
@@ -52,34 +52,33 @@ def is_user_in_channels(bot, user_id):
     return True
 
 # ✅ Fetch User Profile Picture
-def get_profile_photo(bot, user_id):
-    photos = bot.get_user_profile_photos(user_id)
+async def get_profile_photo(context: CallbackContext, user_id):
+    photos = await context.bot.get_user_profile_photos(user_id)
     if photos.total_count > 0:
         file_id = photos.photos[0][0].file_id
         return file_id
     return None
 
 # ✅ Force Join Welcome Function
-def welcome(update, context):
+async def welcome(update, context):
     new_members = update.message.new_chat_members
     for member in new_members:
         name = member.first_name or "User"
         username = member.username or "Unknown"
         user_id = member.id
 
-        if is_user_in_channels(context.bot, user_id):
-            profile_pic = get_profile_photo(context.bot, user_id)
+        if await is_user_in_channels(context, user_id):
+            profile_pic = await get_profile_photo(context, user_id)
 
             if profile_pic:
-                context.bot.send_photo(
+                await context.bot.send_photo(
                     chat_id=update.message.chat_id,
                     photo=profile_pic,
                     caption=WELCOME_MSG.format(name=name, username=username, user_id=user_id),
                     parse_mode=ParseMode.MARKDOWN
                 )
             else:
-                context.bot.send_message(
-                    chat_id=update.message.chat_id,
+                await update.message.reply_text(
                     text=WELCOME_MSG.format(name=name, username=username, user_id=user_id),
                     parse_mode=ParseMode.MARKDOWN
                 )
@@ -88,43 +87,40 @@ def welcome(update, context):
                 [InlineKeyboardButton(text=name, url=url)] for name, url in CHANNEL_LINKS
             ]
             keyboard = InlineKeyboardMarkup(buttons)
-            context.bot.send_message(
-                chat_id=update.message.chat_id,
+            await update.message.reply_text(
                 text=FORCE_JOIN_MSG,
                 reply_markup=keyboard,
                 parse_mode=ParseMode.MARKDOWN
             )
-            context.bot.restrict_chat_member(update.message.chat_id, user_id, can_send_messages=False)
+            await context.bot.restrict_chat_member(update.message.chat_id, user_id, can_send_messages=False)
 
 # ✅ Check Membership After Sending Message
-def check_membership(update, context):
+async def check_membership(update, context):
     user_id = update.message.from_user.id
     
-    if not is_user_in_channels(context.bot, user_id):
+    if not await is_user_in_channels(context, user_id):
         buttons = [
             [InlineKeyboardButton(text=name, url=url)] for name, url in CHANNEL_LINKS
         ]
         keyboard = InlineKeyboardMarkup(buttons)
-        context.bot.send_message(
-            chat_id=update.message.chat_id,
+        await update.message.reply_text(
             text="❌ **You're Still Not in All Channels! 🔥**",
             reply_markup=keyboard,
             parse_mode=ParseMode.MARKDOWN
         )
-        context.bot.restrict_chat_member(update.message.chat_id, user_id, can_send_messages=False)
+        await context.bot.restrict_chat_member(update.message.chat_id, user_id, can_send_messages=False)
     else:
-        context.bot.restrict_chat_member(update.message.chat_id, user_id, can_send_messages=True)
+        await context.bot.restrict_chat_member(update.message.chat_id, user_id, can_send_messages=True)
 
 # ✅ Main Bot Function
-def main():
-    updater = Updater(BOT_TOKEN, use_context=True)
-    dp = updater.dispatcher
+async def main():
+    application = Application.builder().token(BOT_TOKEN).build()
 
-    dp.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome))
-    dp.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, check_membership))
+    application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, check_membership))
 
-    updater.start_polling()
-    updater.idle()
+    await application.run_polling()
 
 if __name__ == '__main__':
-    main()
+    import asyncio
+    asyncio.run(main())
