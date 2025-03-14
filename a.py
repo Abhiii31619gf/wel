@@ -4,6 +4,8 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 import pytz
 import telegram.ext._application
 telegram.ext._application.pytz = pytz
+import apscheduler.util
+apscheduler.util.pytz = pytz
 # Bot Token
 BOT_TOKEN = '7949103650:AAGe5fAoTh4XueeZEdMhYS5EYEczVguEoac'
 ADMIN_ID = 1077368861  # MasterBhaiyaa Admin ID
