@@ -1,11 +1,8 @@
+import pytz
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto, ChatMember
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
-import pytz
-import telegram.ext._application
-telegram.ext._application.pytz = pytz
-import apscheduler.util
-apscheduler.util.pytz = pytz
+
 # Bot Token
 BOT_TOKEN = '7949103650:AAGe5fAoTh4XueeZEdMhYS5EYEczVguEoac'
 ADMIN_ID = 1077368861  # MasterBhaiyaa Admin ID
@@ -119,6 +116,7 @@ async def check_membership(update, context):
 # ✅ Main Bot Function
 async def main():
     application = Application.builder().token(BOT_TOKEN).build()
+    application.job_queue.scheduler.configure(timezone=pytz.utc)
 
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, check_membership))
