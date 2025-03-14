@@ -1,6 +1,6 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, InputMediaPhoto
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-import requests
+from telegram.constants import ChatMemberStatus
 
 # Bot Token
 BOT_TOKEN = '7949103650:AAGe5fAoTh4XueeZEdMhYS5EYEczVguEoac'
@@ -40,18 +40,18 @@ FORCE_JOIN_MSG = """
 🚫 **Without Joining Channels You Can't Chat 🔥**  
 """
 
-# Function to Check If User is in All Channels
-def is_user_in_channels(context, user_id):
+# ✅ Fixed Function for Checking Membership
+def is_user_in_channels(bot, user_id):
     for channel_id in CHANNEL_IDS:
         try:
-            chat_member = context.bot.get_chat_member(channel_id, user_id)
-            if chat_member.status not in ['member', 'administrator', 'creator']:
+            chat_member = bot.get_chat_member(channel_id, user_id)
+            if chat_member.status in [ChatMemberStatus.LEFT, ChatMemberStatus.KICKED]:
                 return False
         except:
             return False
     return True
 
-# Function to Get User Profile Picture
+# ✅ Fetch User Profile Picture
 def get_profile_photo(bot, user_id):
     photos = bot.get_user_profile_photos(user_id)
     if photos.total_count > 0:
@@ -59,7 +59,7 @@ def get_profile_photo(bot, user_id):
         return file_id
     return None
 
-# Welcome New Members
+# ✅ Force Join Welcome Function
 def welcome(update, context):
     new_members = update.message.new_chat_members
     for member in new_members:
@@ -67,8 +67,9 @@ def welcome(update, context):
         username = member.username or "Unknown"
         user_id = member.id
 
-        if is_user_in_channels(context, user_id):
+        if is_user_in_channels(context.bot, user_id):
             profile_pic = get_profile_photo(context.bot, user_id)
+
             if profile_pic:
                 context.bot.send_photo(
                     chat_id=update.message.chat_id,
@@ -95,17 +96,18 @@ def welcome(update, context):
             )
             context.bot.restrict_chat_member(update.message.chat_id, user_id, can_send_messages=False)
 
-# Check Membership for Every Message
+# ✅ Check Membership After Sending Message
 def check_membership(update, context):
     user_id = update.message.from_user.id
-    if not is_user_in_channels(context, user_id):
+    
+    if not is_user_in_channels(context.bot, user_id):
         buttons = [
             [InlineKeyboardButton(text=name, url=url)] for name, url in CHANNEL_LINKS
         ]
         keyboard = InlineKeyboardMarkup(buttons)
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text="❌ **You're Still Not in All Channels!** 🔥",
+            text="❌ **You're Still Not in All Channels! 🔥**",
             reply_markup=keyboard,
             parse_mode=ParseMode.MARKDOWN
         )
@@ -113,18 +115,14 @@ def check_membership(update, context):
     else:
         context.bot.restrict_chat_member(update.message.chat_id, user_id, can_send_messages=True)
 
-# Main Function to Run the Bot
+# ✅ Main Bot Function
 def main():
     updater = Updater(BOT_TOKEN, use_context=True)
     dp = updater.dispatcher
 
-    # Handle New Members
     dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, welcome))
-
-    # Check Membership on Every Message
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, check_membership))
 
-    # Start the Bot
     updater.start_polling()
     updater.idle()
 
