@@ -125,7 +125,7 @@ async def start(update, context):
 async def main():
     application = Application.builder().token(BOT_TOKEN).build()
     
-    # ✅ Fix for APScheduler Timezone
+    # ✅ Fixed APScheduler Timezone Error
     application.job_queue.scheduler.configure(timezone=utc)
 
     # Add Handlers
